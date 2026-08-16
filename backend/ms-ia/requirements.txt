@@ -32,8 +32,6 @@ pgvector
 # Machine Learning / NLP
 # =========================
 sentence-transformers
-transformers
-torch
 numpy
 scikit-learn
 
