@@ -1,0 +1,48 @@
+# =========================
+# Comandos
+# python -m venv venv
+# .\venv\Scripts\activate
+# pip install -r requirements.txt
+# =========================
+
+# =========================
+# FastAPI
+# =========================
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+python-multipart
+
+# =========================
+# OCR
+# =========================
+pytesseract
+pdf2image
+Pillow
+
+# =========================
+# PostgreSQL
+# =========================
+SQLAlchemy
+psycopg[binary]
+pgvector
+
+# =========================
+# Machine Learning / NLP
+# =========================
+sentence-transformers
+transformers
+torch
+numpy
+scikit-learn
+
+# =========================
+# NLP adicional
+# =========================
+spacy
+
+# =========================
+# Utilidades
+# =========================
+python-dotenv

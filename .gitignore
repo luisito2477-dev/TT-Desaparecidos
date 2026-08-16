@@ -1,0 +1,287 @@
+# ============================================================
+# OS / SYSTEM
+# ============================================================
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+
+# ============================================================
+# IDEs / EDITORS
+# ============================================================
+
+.idea/
+*.iml
+*.iws
+*.ipr
+
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+
+*.swp
+*.swo
+*~
+
+
+# ============================================================
+# ENVIRONMENT / SECRETS
+# ============================================================
+
+.env
+.env.*
+!.env.example
+!.env.template
+
+*.pem
+*.key
+*.crt
+
+# Local configuration / secrets
+application-local.properties
+application-local.yml
+application-local.yaml
+application-*.properties
+application-*.yml
+application-*.yaml
+
+# Never commit credentials
+credentials.json
+secrets.json
+service-account.json
+
+
+# ============================================================
+# JAVA / SPRING BOOT
+# ============================================================
+
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Maven generated files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle generated files
+.gradle-cache/
+
+# Spring Boot logs
+*.log
+logs/
+
+# Spring Boot generated files
+spring-boot-devtools.properties
+
+
+# ============================================================
+# PYTHON / FASTAPI
+# ============================================================
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Wheel
+*.whl
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.pyre/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pytype/
+
+# Ruff
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python environment files
+.python-version
+
+# FastAPI / Uvicorn logs
+*.log
+logs/
+
+
+# ============================================================
+# NODE / REACT
+# ============================================================
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# React / Vite cache
+.vite/
+.cache/
+
+# Next.js (por si el frontend evoluciona a Next)
+.next/
+out/
+
+# Testing
+coverage/
+.nyc_output/
+
+# npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package manager caches
+.npm/
+.yarn/
+.pnpm-store/
+
+# Optional Yarn files
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# React environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+
+# ============================================================
+# DATABASE / LOCAL DATA
+# ============================================================
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Database dumps
+*.sql
+*.dump
+
+# Local persistent data
+data/
+database/
+db/
+
+
+# ============================================================
+# LOGS
+# ============================================================
+
+*.log
+logs/
+log/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+
+# ============================================================
+# TEMPORARY FILES
+# ============================================================
+
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+
+
+# ============================================================
+# DOCKER
+# ============================================================
+
+# Local Docker environment files
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Docker volumes / local data
+.docker/
+docker-data/
+
+
+# ============================================================
+# CERTIFICATES / TLS
+# ============================================================
+
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+
+# ============================================================
+# GENERATED FILES
+# ============================================================
+
+*.generated.*
+*.min.js
+*.min.css
+
+
+# ============================================================
+# LOCAL CONFIGURATION
+# ============================================================
+
+config.local.*
+settings.local.*
+
+local/
+.local/
+
+
+# ============================================================
+# BACKUPS
+# ============================================================
+
+*.old
+*.orig
+*.save

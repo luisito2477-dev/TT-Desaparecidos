@@ -1,0 +1,33 @@
+### DOCKER DE PRUEBA PARA PODER REALIZAR OPERACIONES EN UNA BASE DE DATOS
+### NO ES LA BASE DE DATOS FINAL
+### SE USARA POSTGRESQL POR AHORA, VEREMOS SI CAMBIAMOS DE DB O NEL PASTEL
+## Comandos chidos:
+# Levantar el contenedor
+# docker compose up -d
+# Ver estado de contenedores
+# docker ps
+# Ver logs en tiempo real
+# docker logs -f sara-postgres
+# Detener contenedor
+# docker compose down
+# conectarse a la DB
+# docker exec -it sara-postgres psql -U sara_user -d sara_db
+
+version: '3.8'
+
+services:
+  postgres-db:
+    image: pgvector/pgvector:pg16
+    container_name: sara-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=sara_user
+      - POSTGRES_PASSWORD=sara_password
+      - POSTGRES_DB=sara_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+

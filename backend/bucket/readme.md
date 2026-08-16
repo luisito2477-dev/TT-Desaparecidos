@@ -1,0 +1,1 @@
+Aqui se guardaran todos los PDFs que YA HAN SIDO PROCESADOS, es decir, que ya les extrajimos sus datos con el OCR y ya guardamos sus campos en la DB.
