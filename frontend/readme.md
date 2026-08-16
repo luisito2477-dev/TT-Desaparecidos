@@ -1,0 +1,1 @@
+aqui ira lo de react, gsap, tailwind, toda esa jalada jaja
