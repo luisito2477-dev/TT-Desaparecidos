@@ -2,9 +2,8 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from logging import Logger, getLogger
 from app.routes.controller import router
-from app.exception.exception_handlers import (
-    global_exception_handler
-)
+from app.exception.exceptions import *
+from app.exception.exception_handlers import *
 from app.service.nlp_service import EmbeddingService
 from typing import (
     Optional,
@@ -36,7 +35,7 @@ async def lifespan(app: FastAPI):
     # SHUTDOWN: Se ejecuta al apagar el servidor
     logger.info("Limpiando recursos de IA...")
 
-    
+
 app: FastAPI = FastAPI(
     title="MS-IA",
     version="1.0",
@@ -50,6 +49,16 @@ app.include_router(router)
 app.add_exception_handler(
     Exception,
     global_exception_handler
+)
+
+app.add_exception_handler(
+    EmbeddingGenerationException,
+    embedding_exception_handler
+)
+
+app.add_exception_handler(
+    FileFormatNotAllowedException,
+    file_format_exception_handler
 )
 
 
