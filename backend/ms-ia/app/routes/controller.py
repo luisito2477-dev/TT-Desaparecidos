@@ -10,6 +10,7 @@ from app.dependency.dependencies import get_embedding_service
 from app.service.nlp_service import EmbeddingService
 from app.service.pipeline_service import pipeline
 from typing import Any
+from app.config.config import TRANSFORMER_MODEL
 
 router: APIRouter = APIRouter(
     prefix="/api/ms-ia",
@@ -43,5 +44,6 @@ def generar_embedding(
     """
     return EmbeddingResponse(
         embedding=service.generar_embedding(payload.texto_busqueda),
-        dimension=service.obtener_dimension()
+        dimension=service.obtener_dimension(),
+        modelo="paraphrase-multilingual-MiniLM-L12-v2"
     )

@@ -77,9 +77,6 @@ def extraer_datos_simples(texto_crudo: str) -> Dict[str, str]:
         "Fecha_Percato":
             r"Fecha de percato:\s*([^\n]+)",
 
-        "Lugar_Hechos":
-            r"Lugar de los hechos:\s*([^\n]+)",
-
         "Autoridad_Reporte":
             r"Autoridad que ingresó el reporte:\s*([^\n]+)"
     }
@@ -99,6 +96,59 @@ def extraer_datos_simples(texto_crudo: str) -> Dict[str, str]:
             datos[clave] = "SIN DATO"
 
     return datos
+
+
+def extraer_lugar_hechos(
+    texto_crudo: str
+) -> tuple[str, str]:
+    """
+    Extrae el lugar de los hechos y lo separa
+    en estado y municipio.
+
+    Formato esperado:
+    ESTADO, MUNICIPIO
+    """
+
+    coincidencia = re.search(
+        r"Lugar de los hechos:\s*([^\n]+)",
+        texto_crudo
+    )
+
+    if not coincidencia:
+        return "SIN DATO", "SIN DATO"
+
+    lugar_hechos: str = coincidencia.group(1).strip()
+
+    print("-------------------------------------")
+    print(lugar_hechos)
+    print("---------------------------------------")
+
+    return separar_lugar_hechos(lugar_hechos)
+
+
+
+def separar_lugar_hechos(lugar_hechos: str) -> tuple[str, str]:
+    """
+    Separa el lugar de los hechos en estado y municipio.
+
+    Formato esperado:
+    ESTADO, MUNICIPIO
+    """
+
+    if lugar_hechos == "SIN DATO":
+        return "SIN DATO", "SIN DATO"
+
+    partes: list[str] = lugar_hechos.split(",", maxsplit=1)
+
+    estado: str = partes[0].strip()
+
+    municipio: str = (
+        partes[1].strip()
+        if len(partes) > 1
+        else "SIN DATO"
+    )
+
+    return estado, municipio
 
 
 def extraer_caracteristicas_fisicas(
@@ -298,6 +348,14 @@ def extraer_datos_vitales(
     datos.update(
         extraer_datos_simples(texto_crudo)
     )
+
+    # Lugar de los hechos
+    estado_hechos, municipio_hechos = extraer_lugar_hechos(
+        texto_crudo
+    )
+
+    datos["Estado_Hechos"] = estado_hechos
+    datos["Municipio_Hechos"] = municipio_hechos
 
     # Características físicas
     datos["Caracteristicas_Fisicas"] = (

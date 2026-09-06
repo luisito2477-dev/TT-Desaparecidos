@@ -9,11 +9,12 @@ from typing import (
     Optional,
     Final
 )
+from app.config.config import TRANSFORMER_MODEL
 
 logger: Logger = getLogger("MS-IA")
 
 # Nombre del transformer model
-MODEL_NAME: Final[str] = "paraphrase-multilingual-MiniLM-L12-v2"
+MODEL_NAME: Final[str] = TRANSFORMER_MODEL
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

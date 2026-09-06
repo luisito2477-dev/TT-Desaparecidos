@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.A.R.A. - Tester de Endpoints</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; color: #333; }
+        h1 { color: #2c3e50; }
+        .container { display: flex; gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 4px; font-size: 14px; }
+        input, select, textarea, button { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        pre { background: #1e1e1e; color: #00ff66; padding: 15px; border-radius: 6px; overflow-x: auto; max-height: 400px; font-size: 13px; }
+        hr { border: 0; height: 1px; background: #ddd; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <h1>S.A.R.A. - Panel de Pruebas (ms-core)</h1>
+    
+    <div class="container">
+        <!-- SECCIÓN DE FORMULARIOS -->
+        <div style="flex: 1.2;">
+            
+            <!-- 1. EXTRAER Y PROCESAR PDF -->
+            <div class="card">
+                <h3>1. Extraer y Procesar PDF (OCR / Ficha)</h3>
+                <form id="formPdf">
+                    <div class="form-group">
+                        <label>Seleccionar PDF de Ficha:</label>
+                        <input type="file" id="pdfFile" accept="application/pdf" required>
+                    </div>
+                    <button type="submit">Enviar PDF a ms-core</button>
+                </form>
+            </div>
+
+            <br>
+
+            <!-- 2. GENERAR EMBEDDING DIRECTO -->
+            <div class="card">
+                <h3>2. Generar Embedding de Texto Prueba</h3>
+                <form id="formEmbedding">
+                    <div class="form-group">
+                        <label>Texto para Vectorizar:</label>
+                        <textarea id="textoPrueba" rows="3" placeholder="Ej: Hombre delgado de 180cm con tatuaje en el brazo izquierdo..." required></textarea>
+                    </div>
+                    <button type="submit">Generar Embedding</button>
+                </form>
+            </div>
+
+            <br>
+
+            <!-- 3. BÚSQUEDA HÍBRIDA / FILTROS -->
+            <div class="card">
+                <h3>3. Probar Búsqueda de Fichas</h3>
+                <form id="formBusqueda">
+                    <div class="form-group">
+                        <label>Texto de Búsqueda (Rasgos/Señas):</label>
+                        <input type="text" id="busquedaTexto" placeholder="Ej: Tatuaje de colibri en el pecho" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sexo:</label>
+                        <select id="busquedaSexo">
+                            <option value="">TODOS</option>
+                            <option value="HOMBRE">HOMBRE</option>
+                            <option value="MUJER">MUJER</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Lugar de Hechos:</label>
+                        <input type="text" id="busquedaLugar" placeholder="Ej: NAYARIT">
+                    </div>
+                    <button type="submit">Ejecutar Búsqueda</button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- SECCIÓN DE RESPUESTA JSON -->
+        <div class="card" style="flex: 1;">
+            <h3>Respuesta del Servidor (JSON)</h3>
+            <div id="status">Estado: Esperando petición...</div>
+            <pre id="jsonOutput">// Los resultados formateados aparecerán aquí</pre>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE TU BACKEND SPRING BOOT
+        const BASE_URL = "http://localhost:8080/api"; // Ajusta el puerto/path según tu Spring Boot
+
+        const jsonOutput = document.getElementById("jsonOutput");
+        const statusDiv = document.getElementById("status");
+
+        function renderResponse(statusText, data) {
+            statusDiv.innerHTML = `<b>Estado:</b> ${statusText}`;
+            jsonOutput.textContent = JSON.stringify(data, null, 2);
+        }
+
+        // 1. EVENTO SUBIR PDF
+        document.getElementById("formPdf").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            statusDiv.innerHTML = "<b>Estado:</b> Enviando PDF y procesando (puede tardar unos segundos)...";
+            jsonOutput.textContent = "// Procesando...";
+
+            const formData = new FormData();
+            formData.append("file", document.getElementById("pdfFile").files[0]);
+
+            try {
+                console.log(`${BASE_URL}/ms-core/archivos/upload`);
+                const response = await fetch(`${BASE_URL}/ms-core/archivos/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+                renderResponse(`${response.status} ${response.statusText}`, data);
+            } catch (err) {
+                renderResponse("Error de conexión", { error: err.message });
+            }
+        });
+
+        // 2. EVENTO EMBEDDING
+        document.getElementById("formEmbedding").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            statusDiv.innerHTML = "<b>Estado:</b> Generando embedding...";
+
+            const payload = {
+                texto_busqueda: document.getElementById("textoPrueba").value
+            };
+
+            try {
+                const response = await fetch(`${BASE_URL}/embeddings/generar`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                renderResponse(`${response.status} ${response.statusText}`, data);
+            } catch (err) {
+                renderResponse("Error de conexión", { error: err.message });
+            }
+        });
+
+        // 3. EVENTO BÚSQUEDA
+        document.getElementById("formBusqueda").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            statusDiv.innerHTML = "<b>Estado:</b> Ejecutando búsqueda...";
+
+            const payload = {
+                texto: document.getElementById("busquedaTexto").value,
+                sexo: document.getElementById("busquedaSexo").value || null,
+                lugar: document.getElementById("busquedaLugar").value || null
+            };
+
+            try {
+                const response = await fetch(`${BASE_URL}/fichas/buscar`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                renderResponse(`${response.status} ${response.statusText}`, data);
+            } catch (err) {
+                renderResponse("Error de conexión", { error: err.message });
+            }
+        });
+    </script>
+</body>
+</html>

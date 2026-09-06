@@ -16,7 +16,7 @@ def validar_pdf(ruta_pdf: str) -> bool:
 
 def convertir_pdf_a_imagenes(pdf_bytes: bytes) -> List[Image.Image]:
     """
-    Convierte cada página del PDF en una imagen.
+    Convierte cada pagina del PDF en una imagen.
     """
 
     return convert_from_bytes(
@@ -46,7 +46,7 @@ def ejecutar_ocr(
     imagenes: List[Image.Image]
 ) -> str:
     """
-    Ejecuta OCR sobre todas las páginas y junta
+    Ejecuta OCR sobre todas las paginas y junta
     el texto obtenido.
     """
 

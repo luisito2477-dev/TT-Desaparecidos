@@ -201,14 +201,20 @@ pnpm-debug.log*
 *.sqlite
 *.sqlite3
 
+
 # Database dumps
 *.sql
 *.dump
+
 
 # Local persistent data
 data/
 database/
 db/
+
+# PDFs
+bucket/
+*.pdf
 
 
 # ============================================================

@@ -16,4 +16,33 @@ class EmbeddingService:
          
 
     def obtener_dimension(self) -> int:
+        """
+        Funcion que devuelve el numero de dimensiones que posee el vector
+        """
         return self.model.get_embedding_dimension()
+
+    def construir_texto_semantico(self, data: dict) -> str:
+        """
+        Funcion que construye el texto de la ficha que se utilizara para generar el vector.
+        Se ocuparan 4 datos para la generacion de este texto:
+        - Sexo
+        - Caracteristicas fisicas
+        - Senas Particulares
+        - Prendas Vestir
+        """
+        partes = []
+        
+        # Sexo ayuda a contextualizar sin meter ruido
+        if data.get("Sexo") and data.get("Sexo") != "SIN DATO":
+            partes.append(f"Persona de sexo {data.get('Sexo').lower()}.")
+            
+        if data.get("Caracteristicas_Fisicas") and data.get("Caracteristicas_Fisicas") != "SIN DATO":
+            partes.append(f"Características físicas: {data.get('Caracteristicas_Fisicas')}.")
+            
+        if data.get("Senas_Particulares") and data.get("Senas_Particulares") != "SIN DATO":
+            partes.append(f"Señas particulares: {data.get('Senas_Particulares')}.")
+            
+        if data.get("Prendas_Vestir") and data.get("Prendas_Vestir") != "SIN DATO":
+            partes.append(f"Vestimenta: {data.get('Prendas_Vestir')}.")
+
+        return " ".join(partes)

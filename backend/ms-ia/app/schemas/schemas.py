@@ -30,11 +30,13 @@ class FichaResponse(BaseModel):
     Discapacidad: str
     Fecha_Hechos: str
     Fecha_Percato: str
-    Lugar_Hechos: str
     Autoridad_Reporte: str
+    Estado_Hechos: str
+    Municipio_Hechos: str
     Caracteristicas_Fisicas: str
     Senas_Particulares: str
     Prendas_Vestir: str
+    embedding_Data: EmbeddingResponse
 
 
 class EmbeddingCreate(BaseModel):
@@ -53,3 +55,4 @@ class EmbeddingResponse(BaseModel):
     """
     embedding: list[float]
     dimension: int
+    modelo: str
