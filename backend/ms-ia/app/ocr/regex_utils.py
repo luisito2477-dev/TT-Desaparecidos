@@ -10,6 +10,19 @@ def extraer_nombre(texto_crudo: str) -> str:
 
     nombre: str = "NO ENCONTRADO"
 
+    # NUEVO INTENTO 1: Buscar justo debajo del encabezado principal (Limpieza estricta)
+    match_nombre: Optional[Match] = re.search(
+        r"PERSONA DESAPARECIDA\s*\n+([A-ZÑÁÉÍÓÚ\s]{5,})", 
+        texto_crudo
+    )
+    
+    if match_nombre:
+        nombre_sucio: str = match_nombre.group(1).strip()
+        primera_linea: str = nombre_sucio.split("\n")[0]
+        # Limpieza estricta: Se limpian caracteres basura que el OCR suele confundir con bordes
+        return re.sub(r"^[\s\|lI1]+", "", primera_linea).strip()
+
+    # INTENTO 2 (Fallback): Buscar en bloque hasta Edad
     bloque_nombre: Optional[Match] = re.search(
         r"PERSONA DESAPARECIDA(.*?)Edad al momento",
         texto_crudo,
@@ -23,14 +36,14 @@ def extraer_nombre(texto_crudo: str) -> str:
 
     for linea in lineas:
 
-        match_nombre: Optional[Match] = re.search(
+        match_nombre2: Optional[Match] = re.search(
             r"([A-ZÑÁÉÍÓÚ\s]{10,})",
             linea
         )
 
-        if match_nombre:
+        if match_nombre2:
 
-            nombre_limpio: str = match_nombre.group(1).strip()
+            nombre_limpio: str = match_nombre2.group(1).strip()
 
             if len(nombre_limpio.split()) >= 2:
                 nombre = nombre_limpio
@@ -87,7 +100,8 @@ def extraer_datos_simples(texto_crudo: str) -> Dict[str, str]:
 
         coincidencia: Optional[Match] = re.search(
             patron,
-            texto_crudo
+            texto_crudo,
+            re.IGNORECASE
         )
 
         if coincidencia:
@@ -118,10 +132,6 @@ def extraer_lugar_hechos(
         return "SIN DATO", "SIN DATO"
 
     lugar_hechos: str = coincidencia.group(1).strip()
-
-    print("-------------------------------------")
-    print(lugar_hechos)
-    print("---------------------------------------")
 
     return separar_lugar_hechos(lugar_hechos)
 
@@ -158,37 +168,34 @@ def extraer_caracteristicas_fisicas(
     Extrae las caracteristicas fisicas de la persona.
     """
 
+    # Intentar capturar desde COMPLEX hasta PESO (Mejorado con lógicas de original.py)
     match_fisicas: Optional[Match] = re.search(
-        r"(COMPLEXI[OÓ]N.*?PESO:\s*\d+kg)",
+        r"((?:COMPLEX.*?|COLOR DE LA PIEL).*?PESO:.*?kg)",
         texto_crudo,
         re.DOTALL | re.IGNORECASE
     )
 
-    if not match_fisicas:
-        return "SIN DATO"
+    if match_fisicas:
+        texto_limpio: str = match_fisicas.group(1).replace("\n", " ").strip()
+        # NUEVA LIMPIEZA: Borra los títulos colados y la barra
+        texto_limpio = re.sub(r"(Características|f[ií]sicas:?|\|)", "", texto_limpio, flags=re.IGNORECASE)
+        return re.sub(r"\s+", " ", texto_limpio).strip()
 
-    texto_limpio: str = (
-        match_fisicas
-        .group(1)
-        .replace("\n", " ")
-        .replace("|", "")
-        .strip()
+    # Fallback
+    match_fisicas_alt: Optional[Match] = re.search(
+        r"f[ií]sicas\s*[:;.]?[\s\|]*(.*?)(?=Se[nñ]as|particulares)",
+        texto_crudo,
+        re.DOTALL | re.IGNORECASE
     )
 
-    texto_limpio = re.sub(
-        r"(f[íi]sicas:|Se[nñ]as|particulares:?|\by\b)",
-        "",
-        texto_limpio,
-        flags=re.IGNORECASE
-    )
+    if match_fisicas_alt:
+        texto_limpio = match_fisicas_alt.group(1).replace("\n", " ").strip()
+        texto_limpio = re.sub(r"^[\s\|lI1]+", "", texto_limpio)
+        texto_limpio = re.sub(r"(Características|f[ií]sicas:?|\|)", "", texto_limpio, flags=re.IGNORECASE)
+        texto_limpio = re.sub(r"\s+", " ", texto_limpio).strip()
+        return texto_limpio if texto_limpio else "SIN DATO"
 
-    texto_limpio = re.sub(
-        r"\s+",
-        " ",
-        texto_limpio
-    ).strip()
-
-    return texto_limpio
+    return "SIN DATO"
 
 
 def extraer_senas_particulares(
@@ -198,8 +205,9 @@ def extraer_senas_particulares(
     Extrae las señas particulares.
     """
 
+    # Mejorado con el lookahead extendido de original.py para no capturar secciones incorrectas
     match_senas: Optional[Match] = re.search(
-        r"PESO:\s*\d+kg[\s\|]*(.*?)(?=Prendas|vestir|SIN DATO|Autoridad)",
+        r"PESO:.*?kg[\s\|\-_—]*(.*?)(?=PRENDA|vestir:|Prendas de|Autoridad|Competentes|DATOS|La\s*informaci[oó]n)",
         texto_crudo,
         re.DOTALL | re.IGNORECASE
     )
@@ -207,32 +215,17 @@ def extraer_senas_particulares(
     if not match_senas:
         return "SIN DATO"
 
-    texto_limpio: str = (
-        match_senas
-        .group(1)
-        .replace("\n", " ")
-        .replace("|", "")
-        .strip()
-    )
-
-    texto_limpio = re.sub(
-        r"^([a-zA-Z]{1,2}\s+)+",
-        "",
-        texto_limpio
-    ).strip()
-
-    texto_limpio = re.sub(
-        r"(f[íi]sicas:|Se[nñ]as|particulares:?|\by\b)",
-        "",
-        texto_limpio,
-        flags=re.IGNORECASE
-    )
-
-    texto_limpio = re.sub(
-        r"\s+",
-        " ",
-        texto_limpio
-    ).strip()
+    texto_limpio: str = match_senas.group(1)
+    
+    texto_limpio = re.sub(r"(Se[nñ]as|particulares:?)", "", texto_limpio, flags=re.IGNORECASE)
+    texto_limpio = re.sub(r"[\n\|]+", " ", texto_limpio)
+    texto_limpio = re.sub(r"^[\s\|lI1\-_—]+", "", texto_limpio).strip()
+    texto_limpio = re.sub(r"[\+,\.\s]+$", "", texto_limpio)
+    
+    # NUEVA LIMPIEZA: Eliminar alucinación de Tesseract "dio"
+    texto_limpio = re.sub(r"\bdio\b", "", texto_limpio, flags=re.IGNORECASE).strip()
+    
+    texto_limpio = re.sub(r"\s+", " ", texto_limpio).strip()
 
     return texto_limpio if texto_limpio else "SIN DATO"
 
@@ -244,8 +237,9 @@ def extraer_prendas_vestir(
     Extrae las prendas de vestir.
     """
 
+    # Regex mejorada desde original.py
     match_prendas: Optional[Match] = re.search(
-        r"(?:vestir:|Prendas de)[\s\|]*(.*?)(?=Autoridad|Competentes|La informaci)",
+        r"(?:vestir:|Prendas de vestir:?|PRENDA DE VESTIR)[\s\|\-_—]*(.*?)(?=Autoridad|Competentes|DATOS|La\s*informaci[oó]n)",
         texto_crudo,
         re.DOTALL | re.IGNORECASE
     )
@@ -253,22 +247,18 @@ def extraer_prendas_vestir(
     if not match_prendas:
         return "SIN DATO"
 
-    texto_limpio: str = (
-        match_prendas
-        .group(1)
-        .replace("\n", " ")
-        .replace("|", "")
-        .strip()
-    )
-
-    if "SIN DATO" in texto_limpio.upper():
+    texto_limpio: str = match_prendas.group(1)
+    
+    texto_limpio = re.sub(r"[\n\|]+", " ", texto_limpio)
+    texto_limpio = re.sub(r"^[\s\|lI1\-_—:]+", "", texto_limpio).strip()
+    
+    # NUEVA LIMPIEZA: Borra la palabra "vestir:" flotante si se coló
+    texto_limpio = re.sub(r"\bvestir:\s*", "", texto_limpio, flags=re.IGNORECASE)
+    
+    if "SIN DATO" in texto_limpio.upper() or not texto_limpio:
         return "SIN DATO"
 
-    return re.sub(
-        r"\s+",
-        " ",
-        texto_limpio
-    ).strip()
+    return re.sub(r"\s+", " ", texto_limpio).strip()
 
 
 def aplicar_correcciones(
@@ -279,8 +269,13 @@ def aplicar_correcciones(
     frecuentes del OCR.
     """
 
-    if datos["Habla_Espanol"] == "S!":
+    if datos.get("Habla_Espanol") == "S!":
         datos["Habla_Espanol"] = "SI"
+
+    # Descartar capturas accidentales (basura de 1 o 2 caracteres)
+    for clave in ["Discapacidad", "Lengua_Indigena"]:
+        if clave in datos and len(datos[clave]) <= 2 and not datos[clave].isalnum():
+            datos[clave] = "SIN DATO"
 
     return datos
 
@@ -300,6 +295,7 @@ def aplicar_fallback_tabla(
         and (
             datos["Caracteristicas_Fisicas"] == ""
             or datos["Caracteristicas_Fisicas"] == "O"
+            or datos["Caracteristicas_Fisicas"] == "SIN DATO"
         )
     ):
 
