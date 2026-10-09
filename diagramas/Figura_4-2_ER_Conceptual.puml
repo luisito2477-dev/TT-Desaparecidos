@@ -1,0 +1,62 @@
+@startuml Figura_4-2_ER_Conceptual
+!pragma layout smetana
+hide circle
+hide methods
+skinparam dpi 200
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor #F7FAFC
+  HeaderBackgroundColor #E3EEFA
+  BorderColor #2B6CB0
+  ArrowColor #4A5568
+}
+
+entity "Expediente" as EXP {
+  * id : UUID <<PK>>
+  --
+  nombre : texto
+  edad_desaparicion : entero
+  sexo : texto
+  fecha_hechos : fecha
+  estado_hechos : texto
+  caracteristicas_fisicas : texto
+  senas_particulares : texto
+  prendas_vestir : texto
+}
+
+entity "Archivo adjunto" as ARC {
+  * id : UUID <<PK>>
+  --
+  hash_md5 : texto <<UK>>
+  ruta : texto
+}
+
+entity "Embedding" as EMB {
+  * id : UUID <<PK>>
+  --
+  modelo_embedding : texto
+  vector : vector(384)
+}
+
+entity "Usuario (TT2)" as USR {
+  * id : UUID <<PK>>
+  --
+  correo : texto <<UK>>
+  rol : texto
+}
+
+entity "Historial de búsqueda (TT2)" as HIS {
+  * id : UUID <<PK>>
+  --
+  texto_busqueda : texto
+  filtros : json
+  creado_en : fecha
+}
+
+EXP ||--|{ ARC : "se respalda en"
+EXP ||--o| EMB : "se representa con"
+USR ||--o{ HIS : "registra"
+@enduml

@@ -1,0 +1,96 @@
+@startuml Figura_4-3_Modelo_Logico_Fisico
+!pragma layout smetana
+hide circle
+hide methods
+skinparam dpi 200
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor #F7FAFC
+  HeaderBackgroundColor #E3EEFA
+  BorderColor #2B6CB0
+  ArrowColor #4A5568
+}
+skinparam package {
+  BackgroundColor #FFFFFF
+  BorderColor #A0AEC0
+}
+
+package "core_schema" {
+  entity "expedientes" as EXP {
+    * id : UUID <<PK>>
+    --
+    nombre : VARCHAR(255)
+    edad_desaparicion : SMALLINT
+    edad_actual : SMALLINT
+    lugar_nacimiento : VARCHAR(255)
+    sexo : VARCHAR(20)
+    nacionalidad : VARCHAR(100)
+    habla_espanol : BOOLEAN
+    lengua_indigena : VARCHAR(100)
+    discapacidad : VARCHAR(255)
+    fecha_hechos : DATE
+    fecha_percato : DATE
+    autoridad_reporte : VARCHAR(255)
+    estado_hechos : VARCHAR(100)
+    municipio_hechos : VARCHAR(150)
+    caracteristicas_fisicas : TEXT
+    senas_particulares : TEXT
+    prendas_vestir : TEXT
+    fecha_extraccion : TIMESTAMP
+    * creado_en : TIMESTAMP
+  }
+
+  entity "archivos_adjuntos" as ARC {
+    * id : UUID <<PK>>
+    --
+    * expediente_id : UUID <<FK>>
+    nombre_original : VARCHAR(255)
+    * nombre_sistema : VARCHAR(255) <<UK>>
+    * hash_md5 : CHAR(32) <<UK>>
+    * ruta : VARCHAR(500)
+    * creado_en : TIMESTAMP
+  }
+
+  entity "usuarios (TT2)" as USR {
+    * id : UUID <<PK>>
+    --
+    * correo : VARCHAR(255) <<UK>>
+    * contrasena_hash : VARCHAR(100)
+    * rol : VARCHAR(20)
+    * activo : BOOLEAN
+    * creado_en : TIMESTAMP
+  }
+
+  entity "historial_busquedas (TT2)" as HIS {
+    * id : UUID <<PK>>
+    --
+    * usuario_id : UUID <<FK>>
+    texto_busqueda : TEXT
+    filtros : JSONB
+    * creado_en : TIMESTAMP
+  }
+}
+
+package "ai_schema" {
+  entity "embeddings" as EMB {
+    * id : UUID <<PK>>
+    --
+    * expediente_id : UUID <<FK, UK>>
+    * modelo_embedding : VARCHAR(100)
+    * dimension : SMALLINT
+    * vector : VECTOR(384)
+    * creado_en : TIMESTAMP
+  }
+}
+
+EXP ||--|{ ARC : expediente_id
+EXP ||--o| EMB : expediente_id
+USR ||--o{ HIS : usuario_id
+
+legend right
+  * = columna obligatoria (NOT NULL)
+endlegend
+@enduml

@@ -1,0 +1,39 @@
+%%{init: {"theme":"base","themeVariables":{"fontFamily":"Arial","fontSize":"16px","primaryColor":"#E3EEFA","primaryBorderColor":"#2B6CB0","lineColor":"#4A5568","tertiaryColor":"#FFFFFF"}}}%%
+erDiagram
+    EXPEDIENTE ||--|{ ARCHIVO_ADJUNTO : "se respalda en"
+    EXPEDIENTE ||--o| EMBEDDING : "se representa con"
+    USUARIO ||--o{ HISTORIAL_BUSQUEDA : "registra"
+ 
+    EXPEDIENTE {
+        UUID id PK
+        texto nombre
+        entero edad_desaparicion
+        texto sexo
+        fecha fecha_hechos
+        texto estado_hechos
+        texto caracteristicas_fisicas
+        texto senas_particulares
+        texto prendas_vestir
+    }
+    ARCHIVO_ADJUNTO {
+        UUID id PK
+        texto hash_md5 UK
+        texto ruta
+    }
+    EMBEDDING {
+        UUID id PK
+        texto modelo_embedding
+        vector vector
+    }
+    USUARIO {
+        UUID id PK
+        texto correo UK
+        texto rol
+    }
+    HISTORIAL_BUSQUEDA {
+        UUID id PK
+        texto texto_busqueda
+        json filtros
+        fecha creado_en
+    }
+ 

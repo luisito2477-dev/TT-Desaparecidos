@@ -4,6 +4,9 @@ from PIL import Image
 import os
 from pdf2image import convert_from_path, convert_from_bytes
 import pytesseract
+from logging import Logger, getLogger
+
+logger: Logger = getLogger(__name__)
 
 
 def validar_pdf(ruta_pdf: str) -> bool:
@@ -54,9 +57,7 @@ def ejecutar_ocr(
 
     for i, imagen in enumerate(imagenes):
 
-        print(
-            f"[*] Ejecutando OCR en la página {i + 1}..."
-        )
+        logger.info(f"Ejecutando OCR en la pagina {i + 1}...")
 
         texto_pagina: str = ejecutar_ocr_pagina(
             imagen

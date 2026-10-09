@@ -38,7 +38,7 @@ public class Expediente {
     private int edadDesaparicion;
 
     @Column(name = "edad_actual")
-    private int edadActual;
+    private Integer edadActual;
 
     @Column(name = "lugar_nacimiento")
     private String lugarNacimiento;
@@ -50,10 +50,10 @@ public class Expediente {
     private String nacionalidad;
 
     @Column(name = "habla_espanol")
-    private String hablaEspanol; //NOTA: igual y se podria usar ENUM
+    private Boolean hablaEspanol;
 
-    @Column(name = "lengua_indigena")
-    private String lenguaIndigena; //NOTA: igual y se podria usar ENUM
+    @Column(name = "lengua_indigena", length = 100)
+    private String lenguaIndigena;
 
     @Column(name = "discapacidad")
     private String discapacidad;
@@ -67,19 +67,20 @@ public class Expediente {
     @Column(name = "autoridad_reporte")
     private String autoridadReporte;
 
-    @Column(name = "estado_hechos")
+    @Column(name = "estado_hechos", length = 100)
     private String estadoHechos;
 
-    @Column(name = "municipio_hechos")
+    @Column(name = "municipio_hechos", length = 150)
     private String municipioHechos;
 
-    @Column(name = "caracteristicas_fisicas")
+    // TEXT: los campos descriptivos pueden superar los 255 caracteres de un VARCHAR
+    @Column(name = "caracteristicas_fisicas", columnDefinition = "TEXT")
     private String caracteristicasFisicas;
 
-    @Column(name = "senas_particulares")
+    @Column(name = "senas_particulares", columnDefinition = "TEXT")
     private String senasParticulares;
 
-    @Column(name = "prendas_vestir")
+    @Column(name = "prendas_vestir", columnDefinition = "TEXT")
     private String prendasVestir;
 
     @CreatedDate

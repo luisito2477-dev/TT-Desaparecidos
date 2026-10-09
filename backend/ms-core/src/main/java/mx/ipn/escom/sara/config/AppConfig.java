@@ -1,5 +1,6 @@
 package mx.ipn.escom.sara.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -10,12 +11,19 @@ import java.time.Duration;
 @Configuration
 public class AppConfig {
 
+    /**
+     * Cliente HTTP para comunicarse con MS-IA.
+     *
+     * Se usa el RestClient.Builder de Spring Boot para heredar la configuracion
+     * de Jackson (fechas LocalDate, etc.). La URL y los tiempos se leen de
+     * application.properties para poder cambiarlos en Docker sin recompilar.
+     */
     @Bean
     public RestClient iaRestClient() {
         /*
-        * Configuracion que define como se construye la instancia del cliente HTTP
-        * esta instancia objeto se registra como Bean Global
-        * */
+         * Configuracion que define como se construye la instancia del cliente HTTP
+         * esta instancia objeto se registra como Bean Global
+         * */
 
         final String MS_IA_BASE_URL = "http://localhost:8000";
 
@@ -31,5 +39,4 @@ public class AppConfig {
                 .requestFactory(factory)
                 .build();
     }
-
 }

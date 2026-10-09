@@ -11,7 +11,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/ms-core/archivos")
-@CrossOrigin(origins = "*") // Habilita CORS para este controlador
 @AllArgsConstructor
 public class ArchivoController {
 
@@ -23,6 +22,10 @@ public class ArchivoController {
             ){
 
         ProcessedFileResponse response = archivoService.subirArchivo(archivo);
+
+        System.out.println(response.nombre());
+        System.out.println(response.edadDesaparicion());
+        System.out.println(response.caracteristicasFisicas());
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

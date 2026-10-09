@@ -2,7 +2,10 @@ from app.ocr.ocr_utils import *
 from typing import Dict
 from app.ocr.regex_utils import extraer_datos_vitales
 import json
+from logging import Logger, getLogger
+from app.exception.exceptions import *
 
+logger: Logger = getLogger(__name__)
 
 def ejecutar_ocr_limpio(pdf_bytes: bytes) -> Dict[str, str]:
     """
@@ -11,33 +14,26 @@ def ejecutar_ocr_limpio(pdf_bytes: bytes) -> Dict[str, str]:
     PDF → imágenes → OCR → extracción → JSON
     """
 
-    print("Iniciando procesamiento del archivo")
-
-    
-
-    # PDF → imágenes
-    print("[*] Convirtiendo PDF a imágenes (DPI=400)...")
+    logger.info("Convirtiendo PDF a imagenes...")
 
     imagenes: List[Image.Image] = (
         convertir_pdf_a_imagenes(pdf_bytes)
     )
-
+    if not imagenes:
+            raise FichaIlegibleException("El PDF no contiene paginas.")
     # OCR
     texto_total: str = ejecutar_ocr(imagenes)
 
+    if not texto_total.strip():
+        raise FichaIlegibleException("El OCR no detecto texto en el documento.")
+
     # Extraccion
-    print("[*] Extrayendo y estructurando informacion.")
+    logger.info("Extrayendo y estructurando informacion...")
 
     datos_estructurados: Dict[str, str] = (extraer_datos_vitales(texto_total))
 
     # Resultado
-    print("RESULTADO DE LA EXTRACCIÓN (JSON)")
+    logger.debug(f"Datos extraidos: {datos_estructurados}")
 
-    print(
-        json.dumps(
-            datos_estructurados,
-            indent=4,
-            ensure_ascii=False
-        )
-    )
+
     return datos_estructurados

@@ -18,4 +18,5 @@ public interface ExpedienteRepository extends JpaRepository<Expediente, UUID>{
      *
      * existsById(UUID id) (Verifica si el ID ya existe).
      */
+
 }

@@ -32,8 +32,8 @@ public class Embedding {
     @Column(name = "dimension")
     private Integer dimension;
 
-    //Como el hibernate no soporta de forma nativa el tipo vector
-    //lo tendremos que guardar manualmente con consulta SQL en el repository
+    // Hibernate no soporta de forma nativa el tipo VECTOR de pgvector:
+    // la columna "embedding" se escribe con SQL nativo en EmbeddingRepository
     @Transient
     private float[] vectorValores;
 

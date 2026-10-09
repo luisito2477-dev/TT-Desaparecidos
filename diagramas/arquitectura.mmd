@@ -1,0 +1,62 @@
+%%{init: {"theme":"base","flowchart":{"defaultRenderer":"elk","curve":"linear","nodeSpacing":45,"rankSpacing":70},"themeVariables":{"fontFamily":"Arial","fontSize":"15px","clusterBkg":"#FAFAFA","clusterBorder":"#A0AEC0","lineColor":"#4A5568","edgeLabelBackground":"#FFFFFF"}}}%%
+flowchart LR
+    U(["Usuario<br/>(navegador web)"])
+    FE["Frontend<br/>React"]
+    NG["Reverse Proxy<br/>Nginx"]
+
+    subgraph CORE["MS-Core · Spring Boot"]
+        direction TB
+        C1["Seguridad<br/>JWT + RBAC"]
+        C3["Buscador bimodal<br/>filtros + similitud coseno"]
+        C2["Gestión de fichas<br/>ingesta y persistencia"]
+    end
+
+    subgraph IA["MS-IA · FastAPI"]
+        direction TB
+        I1["OCR<br/>Poppler 400 DPI + Tesseract"]
+        I2["Extracción estructurada<br/>expresiones regulares"]
+        I3["Generación de embeddings<br/>MiniLM-L12-v2 · 384 dim"]
+        I1 --> I2 --> I3
+    end
+
+    MQ{{"RabbitMQ<br/>cola de ingesta"}}
+
+    subgraph DB["PostgreSQL + pgvector"]
+        direction TB
+        S1[("core_schema<br/>usuarios · fichas · historial")]
+        S2[("ai_schema<br/>vectores")]
+    end
+    ST[("Almacenamiento de PDFs<br/>carpeta local / bucket")]
+
+    CR["Crawler<br/>Python + Playwright"]
+    RN[("Portal público<br/>RNPDNO")]
+
+    %% Flujo de consulta (planificado TT2)
+    U == "HTTPS" ==> FE
+    FE == "API REST" ==> NG
+    NG ==> C1
+    C1 ==> C3
+    C3 == "texto de consulta" ==> I3
+    C3 == "consulta SQL + vector" ==> DB
+
+    %% Flujo de ingesta (implementado)
+    RN -- "descarga de PDFs" --> CR
+    CR -- "POST ficha PDF" --> C2
+    C2 -- "PDF · HTTP REST" --> I1
+    I3 -- "JSON: datos + vector" --> C2
+    C2 -- "JPA / JDBC" --> DB
+    C2 -- "guarda PDF" --> ST
+
+    %% Alternativa asíncrona (planificada)
+    C2 -. "mensaje" .-> MQ
+    MQ -.-> I1
+
+    classDef impl fill:#E3EEFA,stroke:#2B6CB0,stroke-width:1.6px,color:#1A202C;
+    classDef plan fill:#FFFFFF,stroke:#718096,stroke-width:1.6px,stroke-dasharray:6 4,color:#4A5568;
+    classDef ext fill:#F7FAFC,stroke:#4A5568,stroke-width:1.4px,color:#1A202C;
+    classDef data fill:#E6F4EA,stroke:#2F855A,stroke-width:1.6px,color:#1A202C;
+    class CR,C2,I1,I2,I3 impl;
+    class FE,NG,C1,C3,MQ plan;
+    class U,RN ext;
+    class S1,S2,ST data;
+    

@@ -1,8 +1,9 @@
 package mx.ipn.escom.sara.archivo.controller;
 
-
+/*
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import mx.ipn.escom.sara.archivo.dto.BusquedaResponse;
 import mx.ipn.escom.sara.archivo.dto.BusquedaVectorialRequest;
 import mx.ipn.escom.sara.archivo.service.ArchivoService;
 import mx.ipn.escom.sara.archivo.service.BusquedaService;
@@ -40,9 +41,10 @@ public class BusquedaController {
             BusquedaVectorialRequest request
     ){
 
-        busquedaService.busquedaVectorial(request);
+        BusquedaResponse response = busquedaService.busquedaVectorial(request);
 
         return null;
     }
 
 }
+*/

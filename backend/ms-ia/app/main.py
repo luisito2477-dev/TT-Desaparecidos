@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+import logging
 from logging import Logger, getLogger
 from app.routes.controller import router
 from app.exception.exceptions import *
@@ -11,6 +12,11 @@ from typing import (
 )
 from app.config.config import TRANSFORMER_MODEL
 
+# Configuracion del logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s"
+)
 logger: Logger = getLogger("MS-IA")
 
 # Nombre del transformer model
@@ -62,12 +68,22 @@ app.add_exception_handler(
     file_format_exception_handler
 )
 
+app.add_exception_handler(
+    FichaIlegibleException, 
+    ficha_ilegible_exception_handler
+)
+
 
 @app.get("/")
 def home():
     return { 
         "message": "Server corriendo en el puerto 8000." 
         }
+
+@app.get("/health")
+def health():
+    """Usado por Docker / MS-Core para saber si el servicio esta listo."""
+    return {"status": "ok", "modelo": MODEL_NAME}
 
 
 

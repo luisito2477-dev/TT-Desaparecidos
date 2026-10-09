@@ -19,7 +19,6 @@ import java.util.UUID;
 @Setter
 @EntityListeners(AuditingEntityListener.class)
 public class ArchivoAdjunto {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", updatable = false, nullable = false)
@@ -35,10 +34,11 @@ public class ArchivoAdjunto {
     @Column(name = "nombre_sistema")
     private String nombreSistema;
 
-    @Column(name = "hash_md5")
+    // UNIQUE: garantiza en la BD que no se registre dos veces la misma ficha (RN-05)
+    @Column(name = "hash_md5", nullable = false, unique = true, length = 32)
     private String hashMd5;
 
-    @Column(name = "ruta")
+    @Column(name = "ruta", nullable = false, length = 500)
     private String ruta;
 
     @CreatedDate

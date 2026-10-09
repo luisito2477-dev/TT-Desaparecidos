@@ -1,9 +1,14 @@
-package mx.ipn.escom.sara.archivo.service;
+/*package mx.ipn.escom.sara.archivo.service;
 
 import lombok.AllArgsConstructor;
+import mx.ipn.escom.sara.archivo.dto.BusquedaResponse;
 import mx.ipn.escom.sara.archivo.dto.BusquedaVectorialRequest;
+import mx.ipn.escom.sara.archivo.dto.EmbeddingResponse;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+
 
 @Service
 @AllArgsConstructor
@@ -12,23 +17,24 @@ public class BusquedaServiceImpl implements BusquedaService {
     private final HttpService httpService;
 
     @Override
+    public BusquedaResponse busquedaVectorial(BusquedaVectorialRequest request){
 
-    public void busquedaVectorial(BusquedaVectorialRequest request){
-        //cacheo de busqueda en redis
+        try {
+            //transformar textoBusqueda a vector
+            EmbeddingResponse embeddingResponse = httpService.textoAEmbedding(request.textoBusqueda());
+            //Realizar consulta vectorial en sql
 
-        //si el texto recibido es el mismo que la consulta anterior
-        //pues ya no hacemos la peticion xd
+            //paginacion
 
-        //transformar textoBusqueda a vector
-
-        //Realizar consulta vectorial en sql
-
-        //paginacion y cacheo
-
-        //devolvemos response
+            //devolvemos response
+            return null;
+        } catch (IOException e){
+            return null;
+        }
 
     }
 
 
 
 }
+*/
