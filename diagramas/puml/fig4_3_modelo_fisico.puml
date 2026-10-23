@@ -1,0 +1,104 @@
+@startuml fig4_3_modelo_fisico
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+hide circle
+
+package "core_schema" {
+  entity "usuarios" as U {
+    * id : UUID <<PK>>
+    --
+    * correo : VARCHAR(255) <<UK>>
+    * contrasena_hash : VARCHAR(100)
+    * rol : VARCHAR(20)
+    * activo : BOOLEAN
+    * creado_en : TIMESTAMP
+  }
+  entity "historial_busquedas" as H {
+    * id : UUID <<PK>>
+    --
+    * usuario_id : UUID <<FK>>
+    texto_busqueda : TEXT
+    filtros : JSONB
+    * creado_en : TIMESTAMP
+  }
+  entity "expedientes" as E {
+    * id : UUID <<PK>>
+    --
+    nombre : VARCHAR(255)
+    edad_desaparicion : INTEGER
+    edad_actual : INTEGER
+    lugar_nacimiento : VARCHAR(255)
+    sexo : VARCHAR(20)
+    nacionalidad : VARCHAR(100)
+    habla_espanol : BOOLEAN
+    lengua_indigena : VARCHAR(100)
+    discapacidad : VARCHAR(255)
+    fecha_hechos : DATE
+    fecha_percato : DATE
+    autoridad_reporte : VARCHAR(255)
+    estado_hechos : VARCHAR(100)
+    municipio_hechos : VARCHAR(150)
+    caracteristicas_fisicas : TEXT
+    senas_particulares : TEXT
+    prendas_vestir : TEXT
+    fecha_extraccion : TIMESTAMP
+    * creado_en : TIMESTAMP
+  }
+  entity "archivos_adjuntos" as A {
+    * id : UUID <<PK>>
+    --
+    * expediente_id : UUID <<FK>>
+    nombre_original : VARCHAR(255)
+    * nombre_sistema : VARCHAR(255) <<UK>>
+    * hash_md5 : VARCHAR(32) <<UK>>
+    * ruta : VARCHAR(500)
+    * creado_en : TIMESTAMP
+  }
+}
+package "ai_schema" {
+  entity "embeddings" as V {
+    * id : UUID <<PK>>
+    --
+    * expediente_id : UUID <<FK, UK>>
+    * modelo_embedding : VARCHAR(100)
+    * dimension : INTEGER
+    * embedding : VECTOR(384)
+    * creado_en : TIMESTAMP
+  }
+}
+U ||--o{ H : usuario_id
+E ||--|{ A : expediente_id
+E ||--o| V : expediente_id
+legend right
+  * = columna obligatoria (NOT NULL)
+endlegend
+@enduml

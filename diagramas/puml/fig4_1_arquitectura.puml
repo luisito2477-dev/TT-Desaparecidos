@@ -1,0 +1,83 @@
+@startuml fig4_1_arquitectura
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+top to bottom direction
+
+actor "Usuario\n(navegador web)" as U
+database "Portal público\nRNPDNO" as RNPDNO
+
+rectangle "Frontend\nReact" as FE
+rectangle "Proxy inverso\nNginx" as NG
+rectangle "Crawler\nPython + Playwright" as CR
+
+package "MS-Core · Spring Boot" as CORE {
+  rectangle "Seguridad\nJWT + RBAC" as SEG
+  rectangle "Gestión de fichas\ningesta y persistencia" as GF
+  rectangle "Buscador bimodal\nfiltros + canales semántico\ny léxico (RRF)" as BUS
+}
+
+queue "RabbitMQ\ncolas de ingesta" as MQ
+database "Redis\ncaché de búsquedas" as RD
+
+package "MS-IA · FastAPI" as IA {
+  rectangle "OCR\nPoppler 400 DPI + Tesseract" as OCR
+  rectangle "Extracción estructurada\nexpresiones regulares" as EXT
+  rectangle "Generación de embeddings\nMiniLM-L12-v2 · 384 dim" as EMB
+}
+
+database "Almacenamiento de PDFs\nvolumen de archivos" as FS
+package "PostgreSQL + pgvector" as PG {
+  database "core_schema\nexpedientes · archivos\nusuarios · historial" as CS
+  database "ai_schema\nembeddings" as AS
+}
+
+U --> FE : HTTPS
+FE --> NG : API REST
+NG --> SEG : HTTP (red interna)
+SEG --> BUS
+RNPDNO --> CR : descarga de PDFs
+CR --> GF : POST ficha PDF
+
+GF --> OCR : PDF · HTTP REST\n(modo directo)
+GF ..> MQ : ficha a procesar\n(carga masiva)
+MQ ..> OCR
+OCR --> EXT
+EXT --> EMB
+EMB --> GF : JSON: datos + vector
+
+BUS --> EMB : texto de consulta
+BUS --> RD : resultados en caché
+GF --> FS : guarda PDF
+GF --> CS : JPA / JDBC
+GF --> AS : SQL nativo
+BUS --> PG : consulta SQL\n(filtros + vector + texto)
+@enduml

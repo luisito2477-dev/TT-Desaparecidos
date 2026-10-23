@@ -1,0 +1,138 @@
+@startuml fig4_4c_dtos_excepciones
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+skinparam classAttributeIconSize 0
+
+package dto {
+  class ProcessedFileResponse <<record>> {
+    +nombre : String
+    +edadDesaparicion : Integer
+    +edadActual : Integer
+    +lugarNacimiento : String
+    +sexo : String
+    +nacionalidad : String
+    +hablaEspanol : Boolean
+    +lenguaIndigena : String
+    +discapacidad : String
+    +fechaHechos : LocalDate
+    +fechaPercato : LocalDate
+    +estadoHechos : String
+    +municipioHechos : String
+    +autoridadReporte : String
+    +caracteristicasFisicas : String
+    +senasParticulares : String
+    +prendasVestir : String
+    +embeddingData : EmbeddingResponse
+  }
+  class EmbeddingResponse <<record>> {
+    +embedding : List<Float>
+    +dimension : int
+    +transformerModel : String
+  }
+  class EmbeddingRequest <<record>> {
+    +texto : String
+  }
+  class BusquedaVectorialRequest <<record>> {
+    +textoBusqueda : String
+    +pagina : Integer
+    +tamano : Integer
+  }
+  class BusquedaAvanzadaRequest <<record>> {
+    +textoBusqueda : String
+    +nombre : String
+    +sexo : String
+    +edadMin : Integer
+    +edadMax : Integer
+    +estadoHechos : String
+    +fechaDesde : LocalDate
+    +fechaHasta : LocalDate
+    +pagina : Integer
+    +tamano : Integer
+    +tieneCriterios() : boolean
+  }
+  class ResultadoBusqueda <<record>> {
+    +expedienteId : UUID
+    +nombre : String
+    +sexo : String
+    +edadDesaparicion : Integer
+    +estadoHechos : String
+    +fechaHechos : LocalDate
+    +fechaExtraccion : LocalDateTime
+    +puntuacion : double
+  }
+  class BusquedaResponse <<record>> {
+    +resultados : List<ResultadoBusqueda>
+    +pagina : int
+    +tamano : int
+    +aviso : String
+    +{static} de(resultados, pagina, tamano) : BusquedaResponse
+  }
+  ProcessedFileResponse "1" *-- "0..1" EmbeddingResponse : embeddingData
+  BusquedaResponse "1" *-- "0..*" ResultadoBusqueda : resultados
+}
+
+package exception {
+  class GlobalExceptionHandler <<RestControllerAdvice>> {
+    +manejarDuplicada(ex : FichaDuplicadaException) : ResponseEntity<ErrorResponse>
+    +manejarArchivoInvalido(ex : ArchivoInvalidoException) : ResponseEntity<ErrorResponse>
+    +manejarProcesamientoIA(ex : ProcesamientoIAException) : ResponseEntity<ErrorResponse>
+    +manejarBusquedaInvalida(ex : BusquedaInvalidaException) : ResponseEntity<ErrorResponse>
+    +manejarAlmacenamiento(ex : AlmacenamientoArchivoException) : ResponseEntity<ErrorResponse>
+  }
+  class ErrorResponse <<record>> {
+    +status : int
+    +message : String
+    +errors : Map<String, String>
+  }
+  class FichaDuplicadaException
+  class ArchivoInvalidoException
+  class ProcesamientoIAException {
+    -statusOrigen : int
+  }
+  class BusquedaInvalidaException
+  class AlmacenamientoArchivoException
+  GlobalExceptionHandler ..> ErrorResponse : <<produce>>
+  GlobalExceptionHandler ..> FichaDuplicadaException : <<maneja>>
+  GlobalExceptionHandler ..> ArchivoInvalidoException : <<maneja>>
+  GlobalExceptionHandler ..> ProcesamientoIAException : <<maneja>>
+  GlobalExceptionHandler ..> BusquedaInvalidaException : <<maneja>>
+  GlobalExceptionHandler ..> AlmacenamientoArchivoException : <<maneja>>
+}
+class RuntimeException
+FichaDuplicadaException --|> RuntimeException
+ArchivoInvalidoException --|> RuntimeException
+ProcesamientoIAException --|> RuntimeException
+BusquedaInvalidaException --|> RuntimeException
+AlmacenamientoArchivoException --|> RuntimeException
+ResultadoBusqueda -[hidden]down- GlobalExceptionHandler
+EmbeddingResponse -[hidden]down- GlobalExceptionHandler
+@enduml

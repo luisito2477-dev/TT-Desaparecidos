@@ -1,0 +1,77 @@
+@startuml fig4_2_er_conceptual
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+hide circle
+
+entity "Expediente" as E {
+  * id : UUID <<PK>>
+  --
+  nombre : texto
+  edad_desaparicion : entero
+  sexo : texto
+  fecha_hechos : fecha
+  estado_hechos : texto
+  caracteristicas_fisicas : texto
+  senas_particulares : texto
+  prendas_vestir : texto
+  fecha_extraccion : fecha
+}
+entity "Archivo adjunto" as A {
+  * id : UUID <<PK>>
+  --
+  hash_md5 : texto <<UK>>
+  ruta : texto
+}
+entity "Embedding" as V {
+  * id : UUID <<PK>>
+  --
+  modelo_embedding : texto
+  embedding : vector(384)
+}
+entity "Usuario" as U {
+  * id : UUID <<PK>>
+  --
+  correo : texto <<UK>>
+  rol : texto
+  activo : booleano
+}
+entity "Historial de búsqueda" as H {
+  * id : UUID <<PK>>
+  --
+  texto_busqueda : texto
+  filtros : json
+  creado_en : fecha
+}
+E ||--|{ A : se respalda en
+E ||--o| V : se representa con
+U ||--o{ H : registra
+@enduml

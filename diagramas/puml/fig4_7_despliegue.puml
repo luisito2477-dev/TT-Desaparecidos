@@ -1,0 +1,85 @@
+@startuml fig4_7_despliegue
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+
+node "Equipo cliente" <<device>> as CLI {
+  node "Navegador web" <<execution environment>> as NAV
+}
+node "Portal RNPDNO" <<servidor externo>> as RNP
+
+node "Servidor de aplicación" <<device>> as SRV {
+  node "Docker Engine + Docker Compose" <<execution environment>> as DK {
+    node "nginx" <<contenedor>> as NGX {
+      artifact "Build estático\nde React" as REACT
+      artifact "nginx.conf\n(proxy inverso, TLS)" as NCONF
+    }
+    node "crawler" <<contenedor bajo demanda>> as CRW {
+      artifact "Script Python\n+ Playwright (Chromium)" as CRS
+    }
+    node "ms-core" <<contenedor>> as MSC {
+      artifact "ms-core.jar\n(Spring Boot · :8080)" as JAR
+    }
+    node "ms-ia" <<contenedor>> as MSI {
+      artifact "Aplicación FastAPI\n(Uvicorn · :8000)" as FAPI
+      artifact "Tesseract + Poppler" as TP
+      artifact "Modelo MiniLM-L12-v2" as MOD
+    }
+    node "postgres" <<contenedor>> as PGC {
+      database "PostgreSQL 16 + pgvector\n(:5432)\ncore_schema · ai_schema" as PGDB
+    }
+    node "rabbitmq" <<contenedor>> as RMQ {
+      artifact "RabbitMQ\n(:5672)" as RMQA
+    }
+    node "redis" <<contenedor>> as RDS {
+      artifact "Redis\n(:6379)" as RDA
+    }
+    storage "Volumen\nalmacenamiento_pdfs" as VPDF
+    storage "Volumen\npgdata" as VPG
+  }
+}
+
+NAV --> NGX : HTTPS :443
+NGX --> MSC : HTTP :8080\n(red interna)
+CRW --> MSC : HTTP :8080\n(red interna)
+CRW --> RNP : HTTPS
+MSC --> MSI : HTTP :8000\n(red interna)
+MSC --> RMQ : AMQP :5672
+RMQ --> MSI : AMQP
+MSC --> PGC : JDBC :5432
+MSC --> RDS : :6379\n(caché)
+MSC --> VPDF
+PGC --> VPG
+
+legend right
+  Solo el contenedor nginx expone puertos al exterior.
+endlegend
+@enduml

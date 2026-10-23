@@ -1,0 +1,127 @@
+@startuml fig4_4a_clases_servicios
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+left to right direction
+skinparam classAttributeIconSize 0
+
+package config {
+  class AppConfig <<Configuration>> {
+    +iaRestClient() : RestClient
+  }
+}
+package controller {
+  class ArchivoController <<RestController>> {
+    -archivoService : ArchivoService
+    +subirArchivo(archivo : MultipartFile) : ResponseEntity<ProcessedFileResponse>
+  }
+  class BusquedaController <<RestController>> {
+    -busquedaService : BusquedaService
+    +busquedaVectorial(request : BusquedaVectorialRequest) : ResponseEntity<BusquedaResponse>
+    +busquedaAvanzada(request : BusquedaAvanzadaRequest) : ResponseEntity<BusquedaResponse>
+  }
+}
+package service {
+  interface ArchivoService {
+    +subirArchivo(archivo : MultipartFile) : ProcessedFileResponse
+  }
+  interface BusquedaService {
+    +busquedaVectorial(request : BusquedaVectorialRequest) : BusquedaResponse
+    +busquedaAvanzada(request : BusquedaAvanzadaRequest) : BusquedaResponse
+  }
+  interface HttpService {
+    +enviarArchivo(contenido : byte[], nombre : String) : ProcessedFileResponse
+    +textoAEmbedding(request : EmbeddingRequest) : EmbeddingResponse
+  }
+  class ArchivoServiceImpl <<Service>> {
+    -httpService : HttpService
+    -expedienteMapper : ExpedienteMapper
+    -expedienteRepository : ExpedienteRepository
+    -archivoAdjuntoRepository : ArchivoAdjuntoRepository
+    -embeddingRepository : EmbeddingRepository
+    +subirArchivo(archivo : MultipartFile) : ProcessedFileResponse
+  }
+  class BusquedaServiceImpl <<Service>> {
+    -httpService : HttpService
+    -busquedaRepository : BusquedaRepository
+    +busquedaVectorial(request : BusquedaVectorialRequest) : BusquedaResponse
+    +busquedaAvanzada(request : BusquedaAvanzadaRequest) : BusquedaResponse
+  }
+  class HttpServiceImpl <<Service>> {
+    -restClient : RestClient
+    +enviarArchivo(contenido : byte[], nombre : String) : ProcessedFileResponse
+    +textoAEmbedding(request : EmbeddingRequest) : EmbeddingResponse
+  }
+}
+package repository {
+  interface ExpedienteRepository
+  interface ArchivoAdjuntoRepository
+  interface EmbeddingRepository
+  class BusquedaRepository <<Repository>> {
+    -jdbc : NamedParameterJdbcTemplate
+    +buscarVectorial(vector : String, pagina : int, tamano : int) : List<ResultadoBusqueda>
+    +buscarHibrida(request : BusquedaAvanzadaRequest, vector : String) : List<ResultadoBusqueda>
+  }
+}
+package utils {
+  class ExpedienteMapper <<Component>> {
+    +aExpediente(respuesta : ProcessedFileResponse) : Expediente
+  }
+  class ArchivoUtils {
+    +{static} guardarArchivo(contenido : byte[], nombre : String) : Path
+    +{static} eliminarArchivo(ruta : Path) : void
+  }
+  class VectorUtils {
+    +{static} aPgVector(vector : List<Float>) : String
+  }
+  class KeyGeneratorUtils <<Component>> {
+    +hashPayload(payload : String) : String
+  }
+}
+
+ArchivoController --> ArchivoService
+BusquedaController --> BusquedaService
+ArchivoServiceImpl ..|> ArchivoService
+BusquedaServiceImpl ..|> BusquedaService
+HttpServiceImpl ..|> HttpService
+ArchivoServiceImpl --> HttpService
+BusquedaServiceImpl --> HttpService
+BusquedaServiceImpl --> BusquedaRepository
+ArchivoServiceImpl --> ExpedienteRepository
+ArchivoServiceImpl --> ArchivoAdjuntoRepository
+ArchivoServiceImpl --> EmbeddingRepository
+ArchivoServiceImpl ..> ExpedienteMapper : <<use>>
+ArchivoServiceImpl ..> ArchivoUtils : <<use>>
+ArchivoServiceImpl ..> VectorUtils : <<use>>
+BusquedaRepository ..> VectorUtils : <<use>>
+BusquedaServiceImpl ..> KeyGeneratorUtils : <<cache key>>
+AppConfig ..> HttpServiceImpl : <<provee RestClient>>
+@enduml

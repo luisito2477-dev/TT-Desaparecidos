@@ -1,0 +1,109 @@
+@startuml fig4_5_actividades_ingesta
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+|Crawler|
+start
+:Iniciar recorrido del portal del RNPDNO;
+repeat
+  :Navegar a la siguiente ficha
+  (esperar renderizado y cerrar modales);
+  :Descargar ficha en PDF;
+  :Enviar PDF a MS-Core
+  (POST multipart);
+  |MS-Core|
+  :Recibir documento;
+  if (¿Es un PDF válido (firma del archivo)?) then (no)
+    :Responder 400 (archivo inválido);
+  else (sí)
+    :Calcular hash MD5 del archivo;
+    if (¿El hash ya existe en la BD? (RN-05)) then (sí)
+      :Responder 409 (ficha duplicada);
+    else (no)
+      :Enviar PDF a MS-IA
+      (HTTP REST, modo directo);
+      |MS-IA|
+      :Convertir cada página a imagen
+      (Poppler, 400 DPI) y a escala de grises;
+      :Ejecutar OCR
+      (Tesseract LSTM, idioma spa);
+      :Extraer campos mediante expresiones regulares;
+      if (¿Algún campo no coincidió?) then (sí)
+        :Aplicar patrones de respaldo (fallback);
+      else (no)
+      endif
+      :Aplicar correcciones post-OCR
+      (p. ej. "S!" → "SI", eliminar ruido);
+      :Normalizar valores
+      (enteros, fechas ISO, booleanos; nulo si no hay dato);
+      if (¿El documento es una ficha del RNPDNO reconocible?) then (no)
+        :Responder 422 (ficha ilegible);
+      else (sí)
+        if (¿Tiene campos descriptivos?) then (sí)
+          :Construir texto semántico
+          (sexo, características físicas, señas
+          particulares y prendas de vestir, en minúsculas);
+          :Generar embedding (384 dimensiones)
+          con MiniLM-L12-v2;
+        else (no)
+          :Omitir embedding;
+        endif
+        :Devolver JSON con campos y vector;
+      endif
+      |MS-Core|
+      if (¿Procesamiento exitoso?) then (sí)
+        :Validar campos extraídos (RN-06)
+        — valores inválidos se guardan como nulos;
+        :Registrar expediente y archivo adjunto
+        (core_schema) y vector (ai_schema);
+        :Guardar PDF en el almacenamiento;
+        if (¿Ocurrió algún error al guardar?) then (sí)
+          :Revertir la transacción y
+          eliminar el PDF guardado;
+          :Responder error al emisor;
+        else (no)
+          :Invalidar la caché de búsquedas;
+          :Responder 201 (ficha registrada);
+        endif
+      else (no)
+        :Responder error al emisor
+        (502 / 503 / 422 según el origen);
+      endif
+    endif
+  endif
+  |Crawler|
+  :Registrar resultado de la ficha
+  (registrada, duplicada o con error);
+  :Esperar intervalo entre peticiones (RNF-08);
+repeat while (¿Hay más fichas por recolectar?) is (sí)
+-> no;
+stop
+@enduml

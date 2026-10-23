@@ -1,0 +1,96 @@
+@startuml fig4_6_actividades_busqueda
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+|Usuario|
+start
+:Capturar criterios de búsqueda
+(descripción en lenguaje natural,
+nombre y/o filtros);
+|Frontend|
+:Validar que exista al menos un criterio;
+:Enviar consulta a MS-Core
+(a través de Nginx);
+|MS-Core|
+if (¿La petición incluye un token de sesión válido?) then (sí)
+  :Identificar al usuario registrado
+  (validación JWT);
+else (no)
+  :Tratar como usuario anónimo;
+endif
+if (¿Resultado en caché (Redis)?) then (sí)
+  :Recuperar resultados de la caché;
+else (no)
+  if (¿Incluye descripción en lenguaje natural?) then (sí)
+    :Enviar texto de la descripción a MS-IA;
+    |MS-IA|
+    :Generar embedding de la consulta
+    (mismo modelo que en la ingesta);
+    :Devolver vector (384 dimensiones);
+    |MS-Core|
+    :Aplicar filtros deterministas;
+    fork
+      :Canal semántico:
+      ordenar por similitud coseno;
+    fork again
+      :Canal léxico:
+      ordenar por coincidencia de palabras;
+    end fork
+    :Fusionar rankings con
+    Reciprocal Rank Fusion (k = 60);
+  else (no)
+    :Ejecutar consulta con filtros
+    deterministas y/o nombre;
+  endif
+  :Ordenar por relevancia y paginar,
+  sin umbral de exclusión (RN-08);
+  :Guardar resultados en caché;
+endif
+if (¿Usuario registrado?) then (sí)
+  :Guardar consulta en el historial (RN-10);
+else (no)
+  :No almacenar la consulta;
+endif
+:Responder lista de fichas candidatas;
+|Frontend|
+:Mostrar resultados con aviso de que
+no constituyen una identificación (RN-02)
+y su fecha de extracción (RN-04);
+|Usuario|
+if (¿Desea consultar una ficha?) then (sí)
+  |Frontend|
+  :Mostrar detalle del expediente
+  y documento PDF original;
+else (no)
+endif
+|Usuario|
+stop
+@enduml

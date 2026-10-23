@@ -6,8 +6,6 @@ from fastapi import UploadFile
 from app.exception.exceptions import *
 from app.service.nlp_service import EmbeddingService
 from app.service.normalization_service import *
-
-
 from app.schemas.schemas import FichaResponse, EmbeddingResponse
 from app.config.config import TRANSFORMER_MODEL
 

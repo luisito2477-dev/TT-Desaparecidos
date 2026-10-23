@@ -8,7 +8,7 @@ from pathlib import Path
 
 # ================= CONFIGURACIÓN =================
 URL_SERVIDOR = "http://localhost:8080/api/ms-core/archivos/upload" # Cambia esto por la URL de tu API
-CARPETA_PDFS = r"C:\Users\luish\Documents\MISPROYECTOS\TT-DESAPARECIDOS\tests\dataset\JIMENEZ"                 # Ruta de la carpeta con los archivos
+CARPETA_PDFS = r"C:\Users\luish\Documents\MISPROYECTOS\TT-DESAPARECIDOS\tests\dataset\PEREZ"                 # Ruta de la carpeta con los archivos
 CANTIDAD_A_ENVIAR = 20                          # Número máximo de PDFs a enviar
 DELAY_SEGUNDOS = 1                            # Tiempo de espera entre peticiones
 # =================================================

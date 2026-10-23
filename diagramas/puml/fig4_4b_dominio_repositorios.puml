@@ -1,0 +1,101 @@
+@startuml fig4_4b_dominio_repositorios
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+left to right direction
+skinparam classAttributeIconSize 0
+
+package entity {
+  class Expediente <<Entity>> {
+    -id : UUID
+    -archivos : List<ArchivoAdjunto>
+    -nombre : String
+    -edadDesaparicion : Integer
+    -edadActual : Integer
+    -lugarNacimiento : String
+    -sexo : String
+    -nacionalidad : String
+    -hablaEspanol : Boolean
+    -lenguaIndigena : String
+    -discapacidad : String
+    -fechaHechos : LocalDate
+    -fechaPercato : LocalDate
+    -autoridadReporte : String
+    -estadoHechos : String
+    -municipioHechos : String
+    -caracteristicasFisicas : String
+    -senasParticulares : String
+    -prendasVestir : String
+    -fechaExtraccion : LocalDateTime
+    -creadoEn : LocalDateTime
+    +agregarArchivo(archivo : ArchivoAdjunto) : void
+  }
+  class ArchivoAdjunto <<Entity>> {
+    -id : UUID
+    -expediente : Expediente
+    -nombreOriginal : String
+    -nombreSistema : String
+    -hashMd5 : String
+    -ruta : String
+    -creadoEn : LocalDateTime
+  }
+  class Embedding <<Entity>> {
+    -id : UUID
+    -expedienteId : UUID
+    -modeloEmbedding : String
+    -dimension : Integer
+    -vectorValores : float[] {transient}
+    -creadoEn : LocalDateTime
+  }
+  Expediente "1" *-- "1..*" ArchivoAdjunto : archivos
+  Expediente "1" -- "0..1" Embedding : expedienteId
+}
+
+package repository {
+  interface "JpaRepository<T, UUID>" as JpaRepository {
+    +save(entidad : T) : T
+    +findById(id : UUID) : Optional<T>
+    +findAll() : List<T>
+    +deleteById(id : UUID) : void
+  }
+  interface ExpedienteRepository <<Expediente>>
+  interface ArchivoAdjuntoRepository <<ArchivoAdjunto>> {
+    +existsByHashMd5(hashMd5 : String) : boolean
+  }
+  interface EmbeddingRepository <<Embedding>> {
+    +guardarEmbedding(id, expedienteId, embeddingStr, modelo, dimension) : void
+    .. SQL nativo: CAST(:embeddingStr AS VECTOR) ..
+  }
+  ExpedienteRepository --|> JpaRepository
+  ArchivoAdjuntoRepository --|> JpaRepository
+  EmbeddingRepository --|> JpaRepository
+}
+@enduml

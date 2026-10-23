@@ -1,0 +1,143 @@
+@startuml fig4_4d_ms_ia
+skinparam dpi 150
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowColor #4A5468
+skinparam packageBorderColor #8FA3BF
+skinparam packageBackgroundColor #F7F9FC
+skinparam rectangleBackgroundColor #E3EEFA
+skinparam rectangleBorderColor #3D7CC9
+skinparam databaseBackgroundColor #E6F4EA
+skinparam databaseBorderColor #5BA06B
+skinparam nodeBackgroundColor #F7F9FC
+skinparam nodeBorderColor #4A5468
+skinparam artifactBackgroundColor #E3EEFA
+skinparam artifactBorderColor #3D7CC9
+skinparam storageBackgroundColor #E6F4EA
+skinparam storageBorderColor #5BA06B
+skinparam queueBackgroundColor #FFF6E0
+skinparam queueBorderColor #C9952B
+skinparam classBackgroundColor #F5F8FC
+skinparam classHeaderBackgroundColor #E3EEFA
+skinparam classBorderColor #3D7CC9
+skinparam entityBackgroundColor #F5F8FC
+skinparam entityBorderColor #3D7CC9
+skinparam activityBackgroundColor #E3EEFA
+skinparam activityBorderColor #3D7CC9
+skinparam activityDiamondBackgroundColor #FFF6E0
+skinparam activityDiamondBorderColor #C9952B
+skinparam swimlaneBorderColor #8FA3BF
+skinparam noteBackgroundColor #EEEEEE
+skinparam noteBorderColor #888888
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "routes" {
+  class controller <<APIRouter /api/ms-ia>> {
+    +extraer_datos(ficha : UploadFile) : FichaResponse
+    .. POST /extraer-datos ..
+    +generar_embedding(request : EmbeddingCreate) : EmbeddingResponse
+    .. POST /embedding ..
+  }
+}
+package "service" {
+  class pipeline_service <<módulo>> {
+    +pipeline(ficha : UploadFile, embedding_service : EmbeddingService) : FichaResponse
+  }
+  class ocr_service <<módulo>> {
+    +ejecutar_ocr_limpio(pdf_bytes : bytes) : Dict[str, str]
+  }
+  class normalizacion_service <<módulo>> {
+    +normalizar(datos : Dict[str, str]) : Dict[str, Any]
+    +es_ficha_reconocible(datos : Dict) : bool
+  }
+  class EmbeddingService {
+    -model : SentenceTransformer
+    +generar_embedding(texto : str) : list[float]
+    +obtener_dimension() : int
+    +construir_texto_semantico(data : dict) : str
+  }
+}
+package "ocr" {
+  class ocr_utils <<módulo>> {
+    +validar_pdf(contenido : bytes) : bool
+    +convertir_pdf_a_imagenes(pdf_bytes : bytes) : List[Image]
+    +ejecutar_ocr_pagina(imagen : Image) : str
+    +ejecutar_ocr(pdf_bytes : bytes) : str
+  }
+  class regex_utils <<módulo>> {
+    +extraer_datos_vitales(texto : str) : Dict[str, str]
+    +extraer_nombre(texto : str) : str
+    +extraer_datos_simples(texto : str) : Dict[str, str]
+    +extraer_lugar_hechos(texto : str) : str
+    +separar_lugar_hechos(lugar : str) : tuple[str, str]
+    +extraer_caracteristicas_fisicas(texto : str) : str
+    +extraer_senas_particulares(texto : str) : str
+    +extraer_prendas_vestir(texto : str) : str
+    +aplicar_fallback_tabla(texto : str, datos : Dict) : Dict
+    +aplicar_correcciones(datos : Dict) : Dict
+  }
+}
+package "schemas" {
+  class FichaResponse <<BaseModel>> {
+    +nombre : Optional[str]
+    +edad_desaparicion : Optional[int]
+    +sexo : Optional[str]
+    +fecha_hechos : Optional[date]
+    +habla_espanol : Optional[bool]
+    +caracteristicas_fisicas : Optional[str]
+    +senas_particulares : Optional[str]
+    +prendas_vestir : Optional[str]
+    +embedding_data : Optional[EmbeddingResponse]
+    ..otros campos de la ficha..
+  }
+  class EmbeddingCreate <<BaseModel>> {
+    +texto : str
+  }
+  class EmbeddingResponse <<BaseModel>> {
+    +embedding : list[float]
+    +dimension : int
+    +transformer_model : str
+  }
+  FichaResponse *-- "0..1" EmbeddingResponse
+}
+package "exception" {
+  class FileFormatNotAllowedException
+  class FichaIlegibleException
+  class EmbeddingGenerationException
+  class exception_handlers <<módulo>> {
+    +file_format_exception_handler() : JSONResponse 400
+    +ficha_ilegible_exception_handler() : JSONResponse 422
+    +embedding_exception_handler() : JSONResponse 500
+    +global_exception_handler() : JSONResponse 500
+  }
+  exception_handlers ..> FileFormatNotAllowedException : <<maneja>>
+  exception_handlers ..> FichaIlegibleException : <<maneja>>
+  exception_handlers ..> EmbeddingGenerationException : <<maneja>>
+}
+package "config" {
+  class config <<módulo>> {
+    +TESSERACT_PATH : str
+    +POPPLER_PATH : str
+    +OCR_DPI : int = 400
+    +MAX_PDF_BYTES : int
+    +TRANSFORMER_MODEL : str
+  }
+}
+
+controller --> pipeline_service
+controller --> EmbeddingService : generar_embedding
+controller ..> FichaResponse
+controller ..> EmbeddingCreate
+pipeline_service --> ocr_utils : validar_pdf
+pipeline_service --> ocr_service
+pipeline_service --> normalizacion_service
+pipeline_service --> EmbeddingService
+ocr_service --> ocr_utils
+ocr_service --> regex_utils
+ocr_utils ..> config : <<use>>
+EmbeddingService ..> config : <<use>>
+pipeline_service ..> FichaIlegibleException : <<lanza>>
+pipeline_service ..> FileFormatNotAllowedException : <<lanza>>
+@enduml
