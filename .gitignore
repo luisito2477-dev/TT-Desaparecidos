@@ -300,3 +300,9 @@ local/
 *.docx
 *.word
 *.pdf
+
+
+# ============================================================
+# CRAWLER (fichas descargadas, registro y métricas)
+# ============================================================
+CRAWLER/fichas/
